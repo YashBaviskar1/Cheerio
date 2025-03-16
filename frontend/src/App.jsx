@@ -1,29 +1,34 @@
-import React, { useState } from "react";
-import Sidebar from "./components/Sidebar";
-import Media from "./components/Media";
-import VideoPreview from "./components/VideoPreview";
-import Transcription from "./components/Transcription";
-import Timeline from "./components/Timeline";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import HomePage from "./components/HomePage";
+import NavBar from "./components/Navbar";
+import Login from "./components/Login"; 
+import SignUp from "./components/SignUp";
+import Sounds from "./components/Sounds";
+import SoundsPlay from "./components/SoundsPlay";
+import Testimonial from "./components/Testimonial";
+import Footer from "./components/Footer";
+import Chat from "./components/Chat";
 
 export default function App() {
-  const [videoSrc, setVideoSrc] = useState(null); // Store uploaded video
-
   return (
-    <div className="flex h-screen bg-slate-800">
-      {/* Sidebar - Upload Video */}
-      <Sidebar setVideoSrc={setVideoSrc} />
+    <Router>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={
+          <div className="flex h-screen bg-slate-800 justify-center items-center">
+            <HomePage />
+            <Testimonial />
+            <Footer />
+          </div>
+        } />
+        <Route path="/login" element={<Login />} /> 
+        <Route path="/SignUp" element={<SignUp />} /> 
+        <Route path="/sounds" element = {<Sounds />} />
+        <Route path="/sound-play" element = {<SoundsPlay />} />
+        <Route path="/chat" element = {<Chat />} />
+      </Routes>
 
-      {/* Main Content: Media + VideoPreview + Transcription + Timeline */}
-      <div className="flex flex-col flex-grow">
-        <div className="flex">
-          <Media />
-          <VideoPreview videoSrc={videoSrc} />
-          <Transcription />
-        </div>
-        <div className="flex">
-          <Timeline />
-        </div>
-      </div>
-    </div>
+    </Router>
   );
 }
