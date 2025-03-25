@@ -1,0 +1,19 @@
+### Signup a new user
+POST http://127.0.0.1:8000/api/signup/
+Content-Type: application/json
+
+{
+  "full_name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securepassword123"
+}
+
+
+### Login a user
+POST http://127.0.0.1:8000/api/login/
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "securepassword123"
+}

@@ -27,3 +27,11 @@ def login(request):
     if user:
         return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
     return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def get_user_details(request, email):
+    try:
+        user = User.objects.get(email=email)
+        return Response({"full_name": user.first_name}, status=200)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
