@@ -16,7 +16,7 @@ export default function App() {
       <NavBar />
       <Routes>
         <Route path="/" element={
-          <div className="flex h-screen bg-slate-800 justify-center items-center">
+          <div className="h-screen bg-slate-800 justify-center items-center">
             <HomePage />
             <Testimonial />
             <Footer />
