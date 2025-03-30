@@ -17,3 +17,22 @@ Content-Type: application/json
   "email": "john.doe@example.com",
   "password": "securepassword123"
 }
+
+### Chat with gemma
+POST http://127.0.0.1:8000/api/chat/
+Content-Type: application/json
+
+{
+  "prompt": "I'm feeling anxious today. Can you help me?"
+}
+
+###
+
+POST http://localhost:11434/api/generate
+Content-Type: application/json
+
+{
+        "model": "gemma:2b",  
+        "prompt": "Hello there",
+        "stream": false
+}

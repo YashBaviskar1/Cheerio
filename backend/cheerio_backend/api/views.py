@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
-
+import requests
 @api_view(['POST'])
 def signup(request):
     data = request.data
@@ -35,3 +35,23 @@ def get_user_details(request, email):
         return Response({"full_name": user.first_name}, status=200)
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=404)
+
+@api_view(['POST'])
+def chat(request):
+    prompt = request.data.get("prompt", "")
+    if not prompt:
+        return Response({"error": "Prompt is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    OLLAMA_API_URL = "http://localhost:11434/api/generate"
+    payload = {
+        "model": "gemma:2b",  
+        "prompt": prompt,
+        "stream": False  
+    }
+    
+    response = requests.post(OLLAMA_API_URL, json=payload)
+    if response.status_code != 200:
+        return Response({"error": "Error communicating with Ollama"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    data = response.json()
+    return Response({"response": data.get("response", "")}, status=status.HTTP_200_OK)
