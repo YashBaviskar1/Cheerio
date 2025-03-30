@@ -35,23 +35,51 @@ def get_user_details(request, email):
         return Response({"full_name": user.first_name}, status=200)
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=404)
+import requests
+import ollama
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+
+# Load FAISS DB
+DB_PATH = "../vectorstore/db_faiss"
+embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+db = FAISS.load_local(DB_PATH, embedding_model, allow_dangerous_deserialization=True)
+
+def retrieve_context(query, k=3):
+    """Retrieve top-k relevant chunks from FAISS"""
+    docs = db.similarity_search(query, k=k)
+    return "\n\n".join([doc.page_content for doc in docs])
+from django.http import StreamingHttpResponse
+import json
 
 @api_view(['POST'])
 def chat(request):
     prompt = request.data.get("prompt", "")
     if not prompt:
-        return Response({"error": "Prompt is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Prompt is required"}, status=400)
     
-    OLLAMA_API_URL = "http://localhost:11434/api/generate"
-    payload = {
-        "model": "gemma:2b",  
-        "prompt": prompt,
-        "stream": False  
-    }
+    # Retrieve relevant context
+    context = retrieve_context(prompt)
     
-    response = requests.post(OLLAMA_API_URL, json=payload)
-    if response.status_code != 200:
-        return Response({"error": "Error communicating with Ollama"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    data = response.json()
-    return Response({"response": data.get("response", "")}, status=status.HTTP_200_OK)
+    final_prompt = f"""### Retrieved Context:
+{context}
+
+### User Question:
+{prompt}
+
+### Response:
+"""
+
+    def stream_response():
+        # Stream from Ollama with streaming enabled
+        for chunk in ollama.chat(
+            model="cheerio",
+            messages=[{"role": "user", "content": final_prompt}],
+            stream=True  # Enable streaming mode
+        ):
+            yield json.dumps({"response": chunk["message"]["content"]}) + "\n"
+
+    return StreamingHttpResponse(stream_response(), content_type="application/x-ndjson")
